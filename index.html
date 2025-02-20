@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPHSD Campus Navigator - Login</title>
+    <link rel="stylesheet" href="/src/styles/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="logo">
+        <img src="/assets/logo/Logo.png" id="main-logo">
+        <img src="/assets/logo/ccs-logo.png" id="ccs-logo">
+    </div>
+    <div class="login-page">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>Welcome Back!</h2>
+                <p>Please log in to access your account</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Student Number (e.g., 12-3456-789)" pattern="\d{2}-\d{4}-\d{3}" required>
+                    <span class="input-icon">👤</span>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                    <div class="password-icon-group">
+                        <span id="togglePassword" class="input-icon">👁️</span>
+                        <span class="input-icon">🔒</span>
+                    </div>
+                </div>
+                <button type="submit">Login as Student</button>
+                <button type="button" id="guest-login" class="guest-btn">Login as Guest</button>
+            </form>            
+            <div id="error-message"></div>
+        </div>
+    </div>
+    <script type="module" src="/js/login.js"></script>
+    <script type="module" src="/js/view-password.js"></script>
+</body>
+</html>

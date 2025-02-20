@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/assets/logo/Logo.png">
+    <link rel="stylesheet" href="/src/styles/help.css">
+    <title>Campus Navigator - Help & Support</title>
+</head>
+<body>
+    <div id="logo">
+        <img src="public/assets/logo/Logo.png" id="main-logo">
+        <img src="public/assets/logo/ccs-logo.png" id="ccs-logo">
+    </div>
+
+    <main>
+        <h2>Help and Support</h2>
+        <div class="back-button-container">
+            <button class="back-button" onclick="window.history.back()">← Back</button>
+        </div>
+        <section id="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <details>
+                <summary>How do I navigate the campus map?</summary>
+                <p>You can use the touch controls to explore the map or use the search bar to find specific locations.</p>
+            </details>
+            <details>
+                <summary>What should I do if the app is not working?</summary>
+                <p>Please ensure you have a stable internet connection and try refreshing the page. If the issue persists, contact support.</p>
+            </details>
+            <details>
+                <summary>Can I use the app as a guest?</summary>
+                <p>Yes, guests can log in and use the navigation features without creating an account.</p>
+            </details>
+        </section>
+
+        <section id="contact-section">
+            <h2>Contact Us</h2>
+            <p>If you need further assistance, you can reach us at:</p>
+            <ul>
+                <li>Email: <a href="mailto:information@perpetualdalta.edu.ph">information@perpetualdalta.edu.ph</a></li>
+                <li>Phone:  (02) 8871-0639 local 103</li>
+                <li>Address: Alabang–Zapote Road, Pamplona 3, Las Piñas City, 1740</li>
+            </ul>
+        </section>
+
+        <section id="feedback-section">
+            <h2>Send Us Your Feedback</h2>
+            <form id="feedback-form">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Your name" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Your email" required>
+
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="5" placeholder="Your feedback" required></textarea>
+
+                <button type="submit" class="btn">Submit</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <div id="copyright">
+            © UPHSD-LP Campus Navigator
+        </div>
+        <div id="logo-mobile">
+            <img src="/assets/logo/Logo.png" id="mobile-main-logo">
+            <img src="/assets/logo/ccs-logo.png" id="mobile-ccs-logo">
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('feedback-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Thank you for your feedback!');
+            e.target.reset();
+        });
+    </script>
+    <script type="module" src="/js/session.js"></script>
+</body>
+</html>

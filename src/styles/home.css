@@ -1,0 +1,431 @@
+:root {
+    --primary-color: #7F0404;
+    --primary-hover: #990000;
+    --text-light: #ffffff;
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 1rem;
+    --spacing-md: 2rem;
+    --spacing-lg: 3rem;
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-image: url("/assets/images/background.png");
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.logo-container {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.logo-container img {
+    height: 3.5rem;
+    width: auto;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.logout-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: calc(4rem + var(--spacing-lg)) var(--spacing-md) var(--spacing-md);
+    gap: var(--spacing-lg);
+}
+
+/* Ads Section */
+.ads-section {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.ads-slideshow {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    max-height: 60vh;
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.ads-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.ad-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.ad-slide.active {
+    opacity: 1;
+}
+
+.slideshow-controls {
+    position: absolute;
+    bottom: var(--spacing-sm);
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+    z-index: 2;
+}
+
+.slide-nav {
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.slide-nav:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.slide-dots {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.slide-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.slide-dot.active {
+    background: var(--text-light);
+}
+
+/* Navigation Section */
+.navigation-section {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.primary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-md);
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.primary-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.02);
+}
+
+/* Menu Section */
+.menu-section {
+    width: 100%;
+    max-width: 600px;
+}
+
+.menu-grid {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.menu-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    width: 120px;
+    height: 120px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.menu-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+.menu-button i {
+    font-size: 2rem;
+}
+
+/* Footer */
+.site-footer {
+    padding: var(--spacing-sm);
+    text-align: center;
+}
+
+.copyright {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    background-color: rgba(255, 255, 255, 0.4);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    display: inline-block;
+}
+
+/* Modals */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-close {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+.qr-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-md);
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 2000;
+}
+
+.loading-animation {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ffffff;
+    border-top: 5px solid #7F0404;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .main-content {
+        padding-top: calc(3.5rem + var(--spacing-lg));
+    }
+
+    .ads-slideshow {
+        max-width: 600px;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo-container img {
+        height: 2.5rem;
+    }
+
+    .ads-slideshow {
+        max-width: 500px;
+    }
+
+    .menu-button {
+        width: 100px;
+        height: 100px;
+    }
+
+    .primary-button {
+        font-size: 1.125rem;
+        padding: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .site-header {
+        padding: var(--spacing-xs);
+    }
+
+    .logo-container img {
+        height: 2rem;
+    }
+
+    .logout-button span {
+        display: none;
+    }
+
+    .ads-slideshow {
+        max-width: 100%;
+    }
+
+    .menu-grid {
+        gap: var(--spacing-sm);
+    }
+
+    .menu-button {
+        width: 80px;
+        height: 80px;
+    }
+
+    .menu-button i {
+        font-size: 1.5rem;
+    }
+
+    .menu-button span {
+        font-size: 0.875rem;
+    }
+
+    .modal-content {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Height-based Media Queries */
+@media (max-height: 800px) {
+    .ads-slideshow {
+        max-height: 50vh;
+    }
+}
+
+@media (max-height: 600px) {
+    .main-content {
+        gap: var(--spacing-md);
+    }
+
+    .ads-slideshow {
+        max-height: 45vh;
+    }
+
+    .menu-button {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* Landscape Mode */
+@media (max-height: 500px) and (orientation: landscape) {
+    .main-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-top: calc(3rem + var(--spacing-sm));
+    }
+
+    .ads-section {
+        flex: 0 1 60%;
+    }
+
+    .navigation-section,
+    .menu-section {
+        flex: 0 1 35%;
+    }
+
+    .ads-slideshow {
+        max-height: 70vh;
+    }
+}

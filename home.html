@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/assets/logo/Logo.png">
+    <link rel="stylesheet" href="/src/styles/home.css">
+    <title>Campus Navigator - Home</title>
+    <script src="https://kit.fontawesome.com/002636da55.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo-container" id="logo">
+            <img src="/assets/logo/Logo.png" alt="Main Logo" class="main-logo">
+            <img src="/assets/logo/ccs-logo.png" alt="CCS Logo" class="ccs-logo">
+        </div>
+        <button id="logout" class="logout-button">
+            <i class="fa-solid fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </header>
+
+    <main class="main-content">
+        <section class="ads-section">
+            <div class="ads-slideshow">
+                <div class="ads-container">
+                    <img src="/assets/images/ads/admission_2024-2025.png" class="ad-slide active" alt="Admission 2024-2025">
+                    <img src="/assets/images/ads/Skip-The-Lines.jpg" class="ad-slide" alt="Skip The Lines">
+                    <img src="/assets/images/ads/Nursing-Licensure-Examination-Passer-May-2024.jpg" class="ad-slide" alt="Nursing Licensure Examination">
+                </div>
+                <div class="slideshow-controls">
+                    <button class="slide-nav prev">❮</button>
+                    <div class="slide-dots"></div>
+                    <button class="slide-nav next">❯</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="navigation-section">
+            <button id="start-navigation" class="primary-button">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>Start Navigation</span>
+            </button>
+        </section>
+
+        <section class="menu-section">
+            <div class="menu-grid">
+                <button id="qr-button" class="menu-button">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>QR Code</span>
+                </button>
+                <button id="announcement-button" class="menu-button">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p class="copyright">© UPHSD-LP Campus Navigator</p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="loading-screen" class="modal">
+        <div class="loading-animation"></div>
+        <p>Loading...</p>
+    </div>
+
+    <div id="announcement-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAnnouncement()">×</button>
+            <h3>Announcements</h3>
+            <div class="announcement-list">
+                <p>No Announcement as of today</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeQR()">×</button>
+            <div class="qr-wrapper">
+                <input id="text" type="text" value="https://perpetualdalta.edu.ph" hidden/>
+                <div id="qrcode"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // QR Code Generation
+        var qrcode = new QRCode(document.getElementById("qrcode"), {
+            width: 300,
+            height: 300
+        });
+        
+        function makeCode() {        
+            var elText = document.getElementById("text");
+            if (elText.value) {
+                qrcode.makeCode(elText.value);
+            }
+        }
+        
+        makeCode();
+
+        // Slideshow functionality
+        const slides = document.querySelectorAll('.ad-slide');
+        const dots = document.querySelector('.slide-dots');
+        let currentSlide = 0;
+
+        // Create dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('button');
+            dot.classList.add('slide-dot');
+            dot.addEventListener('click', () => goToSlide(index));
+            dots.appendChild(dot);
+        });
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                dots.children[index].classList.remove('active');
+            });
+            slides[currentSlide].classList.add('active');
+            dots.children[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlides();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlides();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlides();
+        }
+
+        // Event Listeners
+        document.querySelector('.next').addEventListener('click', nextSlide);
+        document.querySelector('.prev').addEventListener('click', prevSlide);
+        document.getElementById('announcement-button').addEventListener('click', () => {
+            document.getElementById('announcement-modal').style.display = 'flex';
+        });
+        document.getElementById('qr-button').addEventListener('click', () => {
+            document.getElementById('qr-modal').style.display = 'flex';
+        });
+
+        // Auto advance slides
+        updateSlides();
+        setInterval(nextSlide, 5000);
+
+        // Modal close functions
+        function closeAnnouncement() {
+            document.getElementById('announcement-modal').style.display = 'none';
+        }
+        
+        function closeQR() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+    </script>
+    <script type="module" src="/js/home-session.js"></script>
+</body>
+</html>

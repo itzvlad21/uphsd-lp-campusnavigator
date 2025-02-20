@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/assets/logo/Logo.png">
+    <link rel="stylesheet" href="/src/style.css">
+    <title>Campus Navigator - Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three.meshline@1.0.0"></script>
+    <script src="https://kit.fontawesome.com/002636da55.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Logo at the top left -->
+        <div id="logo">
+            <img src="/assets/logo/Logo.png" id="main-logo">
+            <img src="/assets/logo/ccs-logo.png" id="ccs-logo">
+        </div>
+        
+        <!-- Menu Buttons -->
+        <div id="menu-container">
+            <div id="menu-toggle" class="menu-toggle">
+                <i class="fa-solid fa-bars" style="color: white;"></i>
+            </div>
+            <nav id="menu-sidebar">
+                <div class="menu-header">
+                    <div class="header-content">
+                        <div class="header-text">
+                            <h2>Campus Navigator</h2>
+                            <p>University of Perpetual Help System DALTA</p>
+                        </div>
+                    </div>
+                    <div class="menu-header-actions">
+                        <button id="close-menu-btn" class="close-menu-btn" title="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-search-container">
+                    <div class="mobile-search-wrapper">
+                        <input type="text" id="mobile-search-input" placeholder="Search..">
+                        <img src="/assets/icons/magnifying-glass.svg" id="mobile-search-btn">
+                        <img src="/assets/icons/x.svg" id="mobile-search-clear-btn" style="display: none;">
+                    </div>
+                    <div id="mobile-search-results"></div>
+                </div>
+                <ul class="menu-list">
+                    <li class="menu-item">
+                        <button onclick="window.location.href='home.html'">
+                            <i class="menu-icon fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <button onclick="window.location.href='about.html'">
+                            <i class="menu-icon fas fa-address-card"></i>
+                            <span>About</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <button onclick="toggleLegendPopup()">
+                            <i class="menu-icon fas fa-info-circle"></i>
+                            <span>Legend</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <button onclick="window.location.href='help.html'">
+                            <i class="menu-icon fas fa-question-circle"></i>
+                            <span>Help & Support</span>
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="menu-footer">
+                    <button id="logout" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                    <div id="copyright">
+                        © UPHSD-LP Campus Navigator
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <form id="search">
+                <input type="text" id="search-input" placeholder="Search.." onfocus="showKeyboard()" ontouchstart="showKeyboard()">
+                <img src="/assets/icons/magnifying-glass.svg" id="search-btn">
+                <img src="/assets/icons/x.svg" id="search-clear-btn" onclick="clearSearch()" style="display: none;">
+            </form>
+            <div id="search-results" class="search-results"></div>
+        </div>
+
+        <!-- Point to Point -->
+        <div id="path-navigation-controls">
+            <div class="navigation-header">
+                <h4>Campus Navigation</h4>
+                <button id="minimize-nav-btn" aria-label="Toggle Navigation Controls" aria-expanded="true" aria-controls="navigation-selectors navigation-actions navigation-controls">−</button>
+            </div>
+            
+            <div class="navigation-selectors">
+                <div class="selector-group">
+                    <label for="category-select">Starting Location</label>
+                    <div class="select-wrapper">
+                        <select id="category-select" aria-describedby="category-hint">
+                            <option value="">Select Your location</option>
+                        </select>
+                        <span class="select-icon">▼</span>
+                    </div>
+                    <small id="category-hint" class="hint">Select your current location</small>
+                </div>
+        
+                <div class="selector-group">
+                    <label for="path-select">Target Destination</label>
+                    <div class="select-wrapper">
+                        <select id="path-select" aria-describedby="path-hint">
+                            <option value="">Select Your Target Destination</option>
+                        </select>
+                        <span class="select-icon">▼</span>
+                    </div>
+                    <small id="path-hint" class="hint">Choose where you want to go</small>
+                </div>
+        
+                <div class="selector-group">
+                    <label for="floor-select">Floor</label>
+                    <div class="select-wrapper">
+                        <select id="floor-select" aria-describedby="floor-hint">
+                            <option value="">Select the Floor Level</option>
+                        </select>
+                        <span class="select-icon">▼</span>
+                    </div>
+                    <small id="floor-hint" class="hint">Select the floor level</small>
+                </div>
+        
+                <div class="selector-group">
+                    <label for="room-select">Specific Room</label>
+                    <div class="select-wrapper">
+                        <select id="room-select" aria-describedby="room-hint">
+                            <option value="">Select A Specific Room</option>
+                        </select>
+                        <span class="select-icon">▼</span>
+                    </div>
+                    <small id="room-hint" class="hint">Choose exact room destination</small>
+                </div>
+            </div>
+        
+            <!-- Start Navigation Button -->
+            <div class="navigation-actions">
+                <button id="navigate-btn" disabled>
+                    <span class="btn-icon">🧭</span>
+                    Start Navigation
+                </button>
+            </div>
+
+            <!-- Confirmation Before Navigating -->
+            <div id="confirm-navigation-modal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <p>Do you want to proceed with navigation?</p>
+                    <button id="proceed-navigation-btn" class="btn">Proceed</button>
+                    <button id="cancel-navigation-btn" class="btn">Cancel</button>
+                </div>
+            </div>
+            
+        
+            <div id="navigation-controls">
+                <!-- Existing buttons -->
+                <button id="pause-btn" disabled>
+                    <i class="menu-icon fas fa-pause"></i> Pause
+                </button>
+                <button id="resume-btn" disabled>
+                    <i class="menu-icon fas fa-play"></i> Resume
+                </button>
+                <button id="restart-btn" disabled>
+                    <i class="menu-icon fas fa-arrow-rotate-left"></i> Restart
+                </button>
+                <button id="cancel-btn" disabled>
+                    <i class="menu-icon fas fa-x"></i> Cancel
+                </button>
+            </div>
+            <button id="mute-voiceover-btn" title="Mute/Unmute Voiceover">
+                <i class="menu-icon fas fa-volume-up" id="voiceover-icon"></i> Voiceover
+            </button>
+        </div>
+
+        <div id="interaction-blocker" style="display: none;"></div>
+        
+        <!-- Introductory Text Display -->
+        <div id="intro-text-container">
+            <p id="intro-text-1" class="intro-line">Welcome to University of Perpetual Help System DALTA Las Piñas.</p>
+            <p id="intro-text-2" class="intro-line">You are using the UPHSD-LP Campus Navigator Tool.</p>
+            <p id="intro-text-3" class="intro-line">I would like to start with a few instructions when using this system.</p>
+            <button id="next-btn" class="intro-next-btn" onclick="proceedToInstructions()">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+            <button id="close-all-btn" onclick="closeAll()">×</button>
+        </div>
+
+        <!-- Instruction Modal -->
+        <div id="instruction-modal">
+            <div id="instruction-content">
+                <img id="instruction-gif" src="/assets/instructions/instruction1.gif" alt="Instruction GIF">
+                <p id="instruction-text">Tap & Drag to look around</p>
+                <div id="instruction-btn-container">
+                    <button id="prev-btn" onclick="prevInstruction()">Previous</button>
+                    <button id="next-btn" onclick="nextInstruction()">Next</button>
+                    <button id="start-btn" onclick="startCampusNavigation()" style="display: none;">Start Navigating</button>
+                </div>
+                <!-- "X" Button to close all content -->
+                <button id="close-all-btn" onclick="closeAll()">×</button>
+            </div>
+        </div>
+
+        <!-- Audio for Welcome and Instructions -->
+        <audio id="welcome-audio" src="/assets/voiceover/Welcome.mp3"></audio>
+        <audio id="intro-audio" src="/assets/voiceover/intro_instruction.mp3"></audio>
+        <audio id="instruction1-audio" src="/assets/voiceover/instruction1.mp3"></audio>
+        <audio id="instruction2-audio" src="/assets/voiceover/instruction2.mp3"></audio>
+        <audio id="instruction3-audio" src="/assets/voiceover/instruction3.mp3"></audio>
+
+        <!-- Information Tab (Initially Hidden) -->
+        <div class="info-tab" id="info-tab">
+            <h2>Location Information</h2>
+            <div id="panorama-images"></div>
+            <button id="close-info-tab">Close</button>
+        </div>
+
+        <!-- Panorama Navigation Buttons Container -->
+        <div id="panorama-navigation-container" class="panorama-nav-container">
+        </div>
+
+        <div id="panorama-viewer"></div>
+
+
+        <!-- Hotspot Popup -->
+        <div class="hotspot-popup" id="hotspot-popup" style="display:none;">
+            <h3 id="hotspot-location-name"></h3>
+            <p id="hotspot-description"></p>
+            <div class="hotspot-popup-buttons">
+                <button class="view-btn" id="view-hotspot-btn">View Location</button>
+                <button class="exit-button" onclick="closeHotspotPopup()">Close</button>
+            </div>
+        </div>
+
+        <div id="iconContainer" style="position: absolute; top: 0; left: 0; pointer-events: none;"></div>
+
+        <!-- Legend Popup -->
+        <div id="legend-popup" class="legend-popup">
+            <h3>Legend</h3>
+            <ul>
+                <li><span class="marker yellow"></span>Pathway Hotspots</li>
+                <li><span class="marker green"></span>Line Path</li>
+                <li><span class="eatery-icon"></span><img src="/assets/icons/eatery.svg" class="eatery-icon-image">Eatery</li>
+                <li><span class="restroom-icon"></span><img src="/assets/icons/toilet.svg" class="restroom-icon-image">Restroom</li>
+                <li><span class="parking-icon"></span><img src="/assets/icons/car.svg" class="parking-icon-image">Parking</li>
+                <li><span class="bookstore-icon"></span><img src="/assets/icons/storefront.svg" class="bookstore-icon-image">Bookstore</li>
+                <li><span class="trackAndField-icon"></span><img src="/assets/icons/person-simple-run.svg" class="trackAndField-icon-image">Track And Field</li>
+                <li><span class="pool-icon"></span><img src="/assets/icons/swimming-pool.svg" class="pool-icon-image">Pool</li>
+            </ul>
+            <button onclick="toggleLegendPopup()">Close</button>
+        </div>
+    </div>
+   
+    <!-- Scripts -->
+    <script type="module" src="/src/guest.js"></script>
+    <script type="module">
+        document.getElementById('logout').addEventListener('click', () => {
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('userType');
+            alert('You have been logged out successfully!');
+            window.location.href = '/index.html';
+        });
+    </script>
+    
+    <!-- External Libraries -->
+    <script type="module" src="/js/session.js"></script>
+    <script>
+        function proceedToInstructions() {
+            const introContainer = document.getElementById('intro-text-container');
+            const instructionModal = document.getElementById('instruction-modal');
+            const welcomeAudio = document.getElementById('welcome-audio');
+            const introAudio = document.getElementById('intro-audio');
+            
+            welcomeAudio.pause();
+            introAudio.pause();
+            
+            introContainer.classList.add('fade-out');
+            
+            setTimeout(() => {
+                introContainer.style.display = 'none';
+                instructionModal.style.display = 'flex';
+                startInstructionSequence();
+            }, 500);
+        }
+
+        const instructions = [
+            { text: "Tap & Drag to look around", gif: "/assets/instructions/instruction1.gif" },
+            { text: "Pinch to Zoom In/Out", gif: "/assets/instructions/instruction2.gif"  },
+            { text: "Use the navigation tool", gif: "/assets/instructions/instruction3.gif" }
+        ];
+
+        window.addEventListener('load', function() {
+            showInstructionModal();
+        });
+
+        const instructionAudios = [
+            document.getElementById('instruction1-audio'),
+            document.getElementById('instruction2-audio'),
+            document.getElementById('instruction3-audio')
+        ];
+
+        let currentInstruction = 0;
+
+        function playWelcomeAndIntro() {
+            const instructionModal = document.getElementById('instruction-modal');
+            const welcomeAudio = document.getElementById('welcome-audio');
+            const introAudio = document.getElementById('intro-audio');
+            const introTextContainer = document.getElementById('intro-text-container');
+            const line1 = document.getElementById('intro-text-1');
+            const line2 = document.getElementById('intro-text-2');
+            const line3 = document.getElementById('intro-text-3');
+
+            instructionModal.style.display = "none";
+            introTextContainer.classList.add('fade-in');
+
+            welcomeAudio.play();
+
+            setTimeout(() => line1.classList.add('fade-in'), 0);
+            setTimeout(() => line2.classList.add('fade-in'), 4000); 
+            setTimeout(() => line3.classList.add('fade-in'), 9000);   
+
+            welcomeAudio.onended = () => {
+                introAudio.play();
+
+                const fadeOutTime = introAudio.duration - 1;
+                setTimeout(() => {
+                    introTextContainer.classList.remove('fade-in');
+                    introTextContainer.classList.add('fade-out');
+                }, fadeOutTime * 1000);
+
+                introAudio.onended = () => {
+                    introTextContainer.style.display = 'none';
+
+                    showInstructionModal();
+                    startInstructionSequence();
+                };
+            };
+
+            welcomeAudio.onerror = () => {
+                introAudio.play();
+                introAudio.onended = () => {
+                    introTextContainer.style.display = 'none';
+                    showInstructionModal();
+                    startInstructionSequence();
+                };
+            };
+        }
+
+        window.closeAll = function() {
+            document.getElementById('intro-text-container').style.display = 'none';
+            document.getElementById('instruction-modal').style.display = 'none';
+
+            const allAudio = [
+                document.getElementById('welcome-audio'),
+                document.getElementById('intro-audio'),
+                document.getElementById('instruction1-audio'),
+                document.getElementById('instruction2-audio'),
+                document.getElementById('instruction3-audio')
+            ];
+            allAudio.forEach(audio => {
+                if (audio) audio.pause();
+                audio.currentTime = 0; 
+            });
+
+            startCampusNavigation();
+        };
+
+
+        function showInstructionModal() {
+            document.getElementById('instruction-modal').style.display = 'flex';
+        }
+
+        function startInstructionSequence() {
+            currentInstruction = 0;
+            updateInstruction();
+        }
+
+        function nextInstruction() {
+            if (currentInstruction < instructions.length - 1) {
+                const currentAudio = instructionAudios[currentInstruction];
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                currentInstruction++;
+                updateInstruction();
+            }
+        }
+
+        function prevInstruction() {
+            if (currentInstruction > 0) {
+                const currentAudio = instructionAudios[currentInstruction];
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                currentInstruction--;
+                updateInstruction();
+            }
+        }
+
+        function updateInstruction() {
+            const instructionText = document.getElementById('instruction-text');
+            const instructionGif = document.getElementById('instruction-gif');
+            const currentAudio = instructionAudios[currentInstruction];
+
+            instructionText.classList.add('instruction-exit');
+            instructionGif.classList.add('instruction-exit');
+
+            setTimeout(() => {
+                instructionText.innerText = instructions[currentInstruction].text;
+                instructionGif.src = instructions[currentInstruction].gif;
+
+                instructionText.classList.remove('instruction-exit');
+                instructionGif.classList.remove('instruction-exit');
+                instructionText.classList.add('instruction-enter');
+                instructionGif.classList.add('instruction-enter');
+
+                setTimeout(() => {
+                    instructionText.classList.remove('instruction-enter');
+                    instructionGif.classList.remove('instruction-enter');
+                }, 500);
+
+                if (currentAudio) {
+                    document.getElementById('prev-btn').style.display = currentInstruction > 0 ? 'inline' : 'none';
+                    document.getElementById('next-btn').style.display = currentInstruction < instructions.length - 1 ? 'inline' : 'none';
+                    document.getElementById('start-btn').style.display = currentInstruction === instructions.length - 1 ? 'inline' : 'none';
+                    
+                    currentAudio.play();
+                }
+            }, 300);
+        }
+
+        function startCampusNavigation() {
+            document.getElementById('instruction-modal').style.display = 'none';
+            
+            const currentAudio = instructionAudios[currentInstruction];
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            const allAudio = [
+                document.getElementById('welcome-audio'),
+                document.getElementById('intro-audio'),
+                document.getElementById('instruction1-audio'),
+                document.getElementById('instruction2-audio'),
+                document.getElementById('instruction3-audio')
+            ];
+            
+            allAudio.forEach(audio => {
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            });
+        }
+        window.addEventListener('load', playWelcomeAndIntro);
+    </script>
+    <script type="module" src="/js/navigation-controls.js"></script>
+    <script type="module" src="/js/menu.js"></script>
+</body>
+</html>

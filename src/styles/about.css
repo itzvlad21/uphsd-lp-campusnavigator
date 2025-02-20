@@ -1,0 +1,144 @@
+/* Base styles */
+:root {
+    --primary-color: #7F0404;
+    --hover-color: #990000;
+    --text-light: #ffffff;
+    --text-dark: #333333;
+    --background-light: #f9f9f9;
+    --spacing-sm: 10px;
+    --spacing-md: 20px;
+    --spacing-lg: 30px;
+    --font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-image: url('/assets/images/about-background.png');
+    background-size: cover;
+    overflow-y: scroll;
+    font-family: 'Poppins', sans-serif;
+    zoom: 75%;
+}
+
+#about-page {
+    background-color: rgba(244, 244, 244, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 800px;
+    margin: 50px auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Logo */
+#logo {
+    position: fixed;
+    display: flex;
+    top: 20px;
+    left: 20px;
+    width: clamp(40px, 8vw, 100%);
+    gap: 10px;
+    height: auto;
+    z-index: 1000;
+}
+
+#logo img {
+    width: clamp(40px, 8vw, 70px);
+}
+
+h1 {
+    color: #7F0404;
+    text-align: center;
+    font-size: 2.5em;
+}
+
+h2 {
+    color: #333;
+    font-size: 1.8em;
+}
+
+p {
+    line-height: 1.8;
+    color: #555;
+    font-size: 1.1em;
+}
+
+ul {
+    display: flex;
+    align-items: center;
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    color: #7F0404;
+    padding: 15px;
+    margin: 10px 30px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 300px; 
+}
+
+ul li img {
+    width: 170px;
+    height: 170px;
+}
+
+.center.maroon {
+    text-align: center;
+    color:#7F0404
+}
+
+#back-button {
+    display: block;
+    padding: 12px 24px;
+    background: linear-gradient(45deg, #7F0404, #990000);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#back-button:hover {
+    background-color: #990000;
+    transform: scale(1.05);
+}
+
+footer {
+    display: none;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    text-align: center;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+#copyright {
+    font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    
+    footer {
+        display: block;
+    }
+
+    #logo {
+        display: none;
+    }
+
+    #logo-mobile {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        padding-top: 10px;
+    }
+    
+    #logo-mobile img {
+        width: 50px;
+    }
+}
