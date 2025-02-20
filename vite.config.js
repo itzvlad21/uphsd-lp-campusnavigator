@@ -2,12 +2,9 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
-  root: './',
-  base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: true,
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
@@ -20,19 +17,13 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5173',
-        changeOrigin: true,
-        secure: false
-      }
-    }
+    port: process.env.PORT || 3000,
+    host: true,
+    strictPort: true
   },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-      '@public': resolve(__dirname, './public')
-    }
+  preview: {
+    port: process.env.PORT || 3000,
+    host: true,
+    strictPort: true
   }
 });
