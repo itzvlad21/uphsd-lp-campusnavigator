@@ -24,6 +24,11 @@ export default defineConfig({
   preview: {
     port: process.env.PORT || 3000,
     host: true,
-    strictPort: true
+    strictPort: true,
+    allowedHosts: [
+      'uphsd-lp-campusnavigator.onrender.com',
+      '.onrender.com',  // This will allow all subdomains on render.com
+      'localhost'
+    ]
   }
 });
