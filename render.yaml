@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: campus-navigator
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 10000
+    nodeVersion: 18.0.0
