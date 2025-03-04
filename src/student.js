@@ -1,30 +1,19 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-// Resource tracking
-const resourceTracker = new Set();
-
-// Scene setup with resource tracking
 const scene = new THREE.Scene();
-resourceTracker.add(scene);
-
 const camera = new THREE.PerspectiveCamera(
     50,
     window.innerWidth / window.innerHeight,
     1,
     500
 );
+
 camera.position.set(0, 250, 10);
 
-const renderer = new THREE.WebGLRenderer({ 
-    antialias: true,
-    powerPreference: "high-performance",
-    precision: "mediump"
-});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(new THREE.Color(0xF4F4F4));
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -36,14 +25,12 @@ labelRenderer.domElement.style.top = '0px';
 labelRenderer.domElement.style.pointerEvents = 'none';
 document.body.appendChild(labelRenderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xf6f6f6, 0.8);
+const ambientLight = new THREE.AmbientLight(0xf6f6f6);
 scene.add(ambientLight);
-resourceTracker.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 2);
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
 directionalLight.position.set(10, 35, 50);
 scene.add(directionalLight);
-resourceTracker.add(directionalLight);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = false;
@@ -388,16 +375,32 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 //-- Hotspots with Panorama Viewer --\\
-function createHotspot(hotspotData, hotspotId) {
-    const markerGeometry = new THREE.SphereGeometry(2, 32, 32);
-    const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const marker = new THREE.Mesh(markerGeometry, markerMaterial);
-    marker.position.set(hotspotData.position.x, hotspotData.position.y, hotspotData.position.z);
-    marker.userData = { hotspotId };
-    scene.add(marker);
+const hotspotPool = {
+    geometry: null,
+    material: null,
+    iconGeometry: null,
+    iconMaterials: {}
+};
 
-    marker.scale.set(2, 2, 2);
-    marker.userData.pulseScale = { value: 1, direction: 1 };
+function createHotspot(hotspotData, hotspotId) {
+    // Reuse geometry if available, otherwise create new one
+    if (!hotspotPool.geometry) {
+        hotspotPool.geometry = new THREE.SphereGeometry(2, 16, 16); // Reduced segment count
+    }
+    
+    // Reuse material if available, otherwise create new one
+    if (!hotspotPool.material) {
+        hotspotPool.material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+    }
+    
+    const marker = new THREE.Mesh(hotspotPool.geometry, hotspotPool.material);
+    marker.position.set(hotspotData.position.x, hotspotData.position.y, hotspotData.position.z);
+    marker.userData = { 
+        hotspotId,
+        pulseScale: { value: 1, direction: 1 },
+        lastPulseUpdate: 0 // For throttling updates
+    };
+    scene.add(marker);
 
     return marker;
 }
@@ -476,9 +479,6 @@ window.loadPanorama = function(hotspotId) {
 
     const hotspot = hotspots[hotspotId]; 
     if (!hotspot) return;
-
-    const youAreHereMarker = document.querySelector('.you-are-here-label'); 
-    if (youAreHereMarker) youAreHereMarker.style.display = 'none'; 
 
     const panoramaTexture = new THREE.TextureLoader().load(hotspot.panoramaImage);
     panoramaTexture.minFilter = THREE.LinearFilter;
@@ -747,6 +747,7 @@ window.closePanorama = function() {
     if (window.currentPanorama) {
         window.currentPanorama.geometry.dispose();
         window.currentPanorama.material.dispose();
+        window.currentPanorama.dispose();
         window.currentPanorama = null;
     }
 
@@ -784,11 +785,8 @@ window.closePanorama = function() {
     document.getElementById('panorama-viewer').style.display = 'none';
     document.getElementById('panorama-navigation-container').innerHTML = '';
 
-    // Trigger an event in case other handlers need to know the panorama was closed
     const event = new Event("panoramaClose");
     window.dispatchEvent(event);
-
-    console.log("Dropdown enabling process completed.");
 };
 
 
@@ -818,7 +816,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-18, 13, -24),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/adminBuilding.jpg'
                             },
                             admissionOffice: {
@@ -835,7 +833,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-16, 13, -24),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/admissionOffice.jpg'
                             },
                             registrar: {
@@ -851,7 +849,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-18, 13, -24),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/registrar.jpg'
                             },
                             cashier: {
@@ -867,7 +865,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-17.8, 13, -24),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cashier.jpg'
                             }
                         }
@@ -921,7 +919,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -945,7 +943,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -53)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/auditorium.jpg'
                             }
                         }
@@ -975,7 +973,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -995,7 +993,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             }
                         },
@@ -1022,7 +1020,7 @@ const paths = {
                                     new THREE.Vector3(-85, 14, -10),
                                     new THREE.Vector3(-88, 14, -10),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cbaamedDeanOffice.jpg'
                             },
                             medtech: {
@@ -1043,7 +1041,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cbaamedDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -1064,7 +1062,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cbaamedDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -1085,7 +1083,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -1106,7 +1104,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -1127,7 +1125,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -1148,8 +1146,8 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 15000,
-                                panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
+                                duration: 20000,
+                                panoramaImage: '/assets/panoramas/collegeOfPharmacy.jpg'
                             },
                             DeansRESEARCH: {
                                 name: "Research and Development Center ",
@@ -1169,7 +1167,8 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
+                                panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
                                 name: "College of Education Dean's Office",
@@ -1189,7 +1188,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -1210,7 +1209,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -1231,7 +1230,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                         }
@@ -1262,7 +1261,7 @@ const paths = {
                                     new THREE.Vector3(-102, 13, -48),
                                     new THREE.Vector3(-103, 13, -54),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/hospitalityManagement.jpg'
                             }
                         }
@@ -1290,7 +1289,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -1323,7 +1322,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -31),
                                     new THREE.Vector3(-98, 14, -32)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -1427,7 +1426,7 @@ const paths = {
                                     new THREE.Vector3(-38, 18, -6),
                                     new THREE.Vector3(-30, 18, -7),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/maritimeDeanOffice.jpg'
                             }
                         }
@@ -1453,7 +1452,7 @@ const paths = {
                                     new THREE.Vector3(-8, 13, -19),
                                     new THREE.Vector3(-4, 13, -19),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                             }
                         }
                     }
@@ -1481,7 +1480,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -1499,7 +1498,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/auditorium.jpg'
                             }
                         }
@@ -1525,7 +1524,7 @@ const paths = {
                                     new THREE.Vector3(54, 13, -35),
                                     new THREE.Vector3(68, 13, 75)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/pathway_ulane1.jpg'
                             }
                         }
@@ -1549,7 +1548,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -1563,7 +1562,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             },
                         }
@@ -1584,7 +1583,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -1600,7 +1599,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -1616,7 +1615,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -1632,7 +1631,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -1648,7 +1647,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -1664,7 +1663,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CPDeanOffice.jpg'
                             },
                             DeansRESEARCH: {
@@ -1680,7 +1679,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
@@ -1697,7 +1696,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -1714,7 +1713,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -1731,7 +1730,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                         }
@@ -1756,7 +1755,7 @@ const paths = {
                                     new THREE.Vector3(-102, 13, -48),
                                     new THREE.Vector3(-103, 13, -54),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/hospitalityManagement.jpg'
                             }
                         }
@@ -1778,7 +1777,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -1805,7 +1804,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -31),
                                     new THREE.Vector3(-98, 14, -32)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -1868,7 +1867,7 @@ const paths = {
                                     new THREE.Vector3(-38, 18, -6),
                                     new THREE.Vector3(-30, 18, -7),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                             }
                         }
                     }
@@ -1891,7 +1890,7 @@ const paths = {
                                     new THREE.Vector3(-59, 13, -65),
                                     new THREE.Vector3(-62, 13, -65)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/newHighSchoolBuilding.jpg'
                             }
                         }
@@ -1912,7 +1911,7 @@ const paths = {
                                     new THREE.Vector3(-12, 13, -20),
                                     new THREE.Vector3(-5, 13, -21)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                             }
                         }
                     }
@@ -1941,7 +1940,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -1960,7 +1959,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -45)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/auditorium.jpg'
                             }
                         }
@@ -1981,7 +1980,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-18, 13, -24)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/adminBuilding.jpg'
                             },
                             registrar: {
@@ -1992,7 +1991,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-18, 13, -24)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/registrar.jpg'
                             },
                             cashier: {
@@ -2003,7 +2002,7 @@ const paths = {
                                     new THREE.Vector3(-13, 13, -25),
                                     new THREE.Vector3(-18, 13, -24)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cashier.jpg'
                             },
                             admissionOffice: {
@@ -2012,7 +2011,7 @@ const paths = {
                                     new THREE.Vector3(-5, 13, -21),
                                     new THREE.Vector3(-16, 13, -23),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/admissionOffice.jpg'
                             }
                         }
@@ -2032,7 +2031,7 @@ const paths = {
                                     new THREE.Vector3(-18, 14, -26),
                                     new THREE.Vector3(-17, 14, -23),
                                 ],
-                                duration: 10000
+                                duration: 20000
                             },
                         }
                     }
@@ -2054,7 +2053,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -2067,7 +2066,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                         }
@@ -2087,7 +2086,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -2102,7 +2101,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -2117,7 +2116,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -2132,7 +2131,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -2147,7 +2146,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -2162,7 +2161,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/CPDeanOffice.jpg'
                             },
                             DeansRESEARCH: {
@@ -2177,7 +2176,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
@@ -2193,7 +2192,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -2209,7 +2208,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -2225,7 +2224,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                         }
@@ -2251,7 +2250,7 @@ const paths = {
                                     new THREE.Vector3(-102, 13, -48),
                                     new THREE.Vector3(-103, 13, -54),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/hospitalityManagement.jpg'
                             }
                         }
@@ -2274,7 +2273,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -2302,7 +2301,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -31),
                                     new THREE.Vector3(-98, 14, -32)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -2322,7 +2321,7 @@ const paths = {
                                     new THREE.Vector3(-14, 13, -23),
                                     new THREE.Vector3(-35, 13, -20),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/criminologyDeanOffice.jpg'
                             }
                         }
@@ -2363,7 +2362,7 @@ const paths = {
                                     new THREE.Vector3(-38, 18, -6),
                                     new THREE.Vector3(-30, 18, -7),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                             }
                         }
                     }
@@ -2405,7 +2404,7 @@ const paths = {
                                     new THREE.Vector3(-23, 13, -30),
                                     new THREE.Vector3(-22, 13, -27),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/registrar.jpg'
                             },
                             cashier: {
@@ -2419,7 +2418,7 @@ const paths = {
                                     new THREE.Vector3(-23, 13, -30),
                                     new THREE.Vector3(-22, 13, -27),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cashier.jpg'
                             }
                         }
@@ -2467,7 +2466,7 @@ const paths = {
                                     new THREE.Vector3(-80, 13, 1),
                                     
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -2483,7 +2482,7 @@ const paths = {
                                     new THREE.Vector3(-77, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             },
                         }
@@ -2506,7 +2505,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -2524,7 +2523,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -2542,7 +2541,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -2560,7 +2559,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -2578,7 +2577,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -2596,7 +2595,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CPDeanOffice.jpg'
                             },
                             DeansRESEARCH: {
@@ -2614,7 +2613,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
@@ -2633,7 +2632,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -2652,7 +2651,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -2671,7 +2670,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                             
@@ -2696,7 +2695,7 @@ const paths = {
                                     new THREE.Vector3(-102, 13, -48),
                                     new THREE.Vector3(-103, 13, -54),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/hospitalityManagement.jpg'
                             }
                         }
@@ -2717,7 +2716,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -2742,7 +2741,7 @@ const paths = {
                                     new THREE.Vector3(-12, 13, -20),
                                     new THREE.Vector3(-5, 13, -21)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                             }
                         }
                     }
@@ -2767,7 +2766,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -31),
                                     new THREE.Vector3(-98, 14, -32)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -2791,7 +2790,7 @@ const paths = {
                                     new THREE.Vector3(-25, 13, -22),
                                     new THREE.Vector3(-35, 13, -20),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/criminologyDeanOffice.jpg'
                             }
                         }
@@ -2813,7 +2812,7 @@ const paths = {
                                     new THREE.Vector3(-57, 13, -39),
                                     new THREE.Vector3(-54, 13, -26),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/europeanGarden1.jpg'
                             }
                         }
@@ -2836,7 +2835,7 @@ const paths = {
                                     new THREE.Vector3(-28, 18, -8),
                                     new THREE.Vector3(-35, 18, -7),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/maritimeDeanOffice.jpg'
                             }
                         }
@@ -2867,7 +2866,7 @@ const paths = {
                                     new THREE.Vector3(-26, 13, -25),
                                     new THREE.Vector3(-20, 13, -25)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/adminBuilding.jpg'
                             },
                             registrar: {
@@ -2883,7 +2882,7 @@ const paths = {
                                     new THREE.Vector3(-20, 13, -25),
                                     new THREE.Vector3(-20, 13, -21),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/registrar.jpg'
                             },
                             cashier: {
@@ -2899,7 +2898,7 @@ const paths = {
                                     new THREE.Vector3(-20, 13, -25),
                                     new THREE.Vector3(-20, 13, -21),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cashier.jpg'
                             }
                         }
@@ -2923,7 +2922,7 @@ const paths = {
                                     new THREE.Vector3(-19, 14, -29),
                                     new THREE.Vector3(-18, 14, -24),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/ccsBuilding3.jpg'
                             }
                         }
@@ -2972,7 +2971,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -2990,7 +2989,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/auditorium.jpg'
                             }
                         }
@@ -3016,7 +3015,7 @@ const paths = {
                                     new THREE.Vector3(-77, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -3032,7 +3031,7 @@ const paths = {
                                     new THREE.Vector3(-77, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             },
                         }
@@ -3055,7 +3054,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -3073,7 +3072,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -3091,7 +3090,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -3109,7 +3108,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -3127,7 +3126,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -3145,7 +3144,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-81, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CPDeanOffice.jpg'
                             },
                             DeansRESEARCH: {
@@ -3163,7 +3162,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
@@ -3182,7 +3181,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -3201,7 +3200,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -3220,7 +3219,7 @@ const paths = {
                                     new THREE.Vector3(-81, 14, 3),
                                     new THREE.Vector3(-82, 14, -1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                         }
@@ -3256,7 +3255,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -3283,7 +3282,7 @@ const paths = {
                                     new THREE.Vector3(-28, 13, -22),
                                     new THREE.Vector3(-35, 13, -20),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/criminologyDeanOffice.jpg'
                             }
                         }
@@ -3307,7 +3306,7 @@ const paths = {
                                     new THREE.Vector3(-54, 13, -32),
                                     new THREE.Vector3(-54, 13, -26),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/europeanGarden1.jpg'
                             }
                         }
@@ -3332,7 +3331,7 @@ const paths = {
                                     new THREE.Vector3(-28, 18, -8),
                                     new THREE.Vector3(-35, 18, -7),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/maritimeDeanOffice.jpg'
                             }
                         }
@@ -3441,7 +3440,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -3459,7 +3458,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                             }
                         }
                     }
@@ -3492,7 +3491,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             }
                         }
@@ -3669,7 +3668,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -31),
                                     new THREE.Vector3(-98, 14, -32)
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -3774,7 +3773,7 @@ const paths = {
                                     new THREE.Vector3(-27, 13, -30),
                                     new THREE.Vector3(-21, 13, -30),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/adminBuilding.jpg'
                             },
                             registrar: {
@@ -3877,7 +3876,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 13, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/library.jpg'
                             }
                         }
@@ -3896,7 +3895,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-70, 14, -53)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/auditorium.jpg'
                             }
                         }
@@ -4015,7 +4014,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -4196,7 +4195,7 @@ const paths = {
                                     new THREE.Vector3(-67, 13, -37),
                                     new THREE.Vector3(-53, 13, -28),
                                 ],
-                                duration: 20000,
+                                duration: 25000,
                                 panoramaImage: '/assets/panoramas/europeanGarden1.jpg'
                             }
                         }
@@ -4343,7 +4342,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-80, 13, 1),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/schoolDirectorOffice.jpg'
                             },
                             graduateSchoolProgramChairpersonOffice: {
@@ -4354,7 +4353,7 @@ const paths = {
                                     new THREE.Vector3(-73, 13, 0),
                                     new THREE.Vector3(-84, 13, 1),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/gspcOffice.jpg'
                             },
                         }
@@ -4372,7 +4371,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansMEDTECH: {
@@ -4385,7 +4384,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-84, 14, 4),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CBAAMEDTECHDeanOffice.jpg'
                             },
                             DeansNURSING: {
@@ -4398,7 +4397,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-83, 14, 3),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/nursingDeanOffice.jpg'
                             },
                             DeansPTOTRT: {
@@ -4411,7 +4410,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/PTOTRTDeanOffice.jpg'
                             },
                             DeansCAS: {
@@ -4424,7 +4423,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-82, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CASDeanOffice.jpg'
                             },
                             DeansPharma: {
@@ -4437,7 +4436,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-80, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/CPDeanOffice.jpg'
                             },
                             DeansRESEARCH: {
@@ -4450,7 +4449,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/researchAndDevelopmentCenter.jpg'
                             },
                             DeansEDUC: {
@@ -4463,7 +4462,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/EDUCOffice.jpg'
                             },
                             DeansVP: {
@@ -4476,7 +4475,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/VPOffice.jpg'
                             },
                             DeansSHS: {
@@ -4489,7 +4488,7 @@ const paths = {
                                     new THREE.Vector3(-90, 14, 4),
                                     new THREE.Vector3(-75, 14, 2),
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/SHSOffice.jpg'
                             }
                         }
@@ -4512,7 +4511,7 @@ const paths = {
                                     new THREE.Vector3(-102, 13, -48),
                                     new THREE.Vector3(-103, 13, -54)
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/hospitalityManagement.jpg'
                             }
                         }
@@ -4532,7 +4531,7 @@ const paths = {
                                     new THREE.Vector3(-100, 14, -54),
                                     new THREE.Vector3(-100, 14, -58),
                                 ],
-                                duration: 10000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/cithmDeanOffice.jpg'
                             }
                         }
@@ -4556,7 +4555,7 @@ const paths = {
                                     new THREE.Vector3(-100, 13, -39),
                                     new THREE.Vector3(-100, 13, -31)
                                 ],
-                                duration: 15000,
+                                duration: 20000,
                                 panoramaImage: '/assets/panoramas/engineeringDeanOffice.jpg'
                             }
                         }
@@ -4597,7 +4596,7 @@ const paths = {
                                     new THREE.Vector3(-14, 13, -23),
                                     new THREE.Vector3(-5, 13, -21)
                                 ],
-                                duration: 10000
+                                duration: 20000
                             }
                         }
                     }
@@ -4607,8 +4606,6 @@ const paths = {
     }
 };
 
-const clock = new THREE.Clock();
-let frameId;
 let isNavigating = false;
 
 function createLabel(text, position) {
@@ -5328,71 +5325,42 @@ window.closePopup = function() {
     closeInfoTab();
 };
 
-const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('/draco/');
-
 const loader = new GLTFLoader();
-loader.setDRACOLoader(dracoLoader);
 loader.load('/assets/model/campus-simple.glb', function (gltf) {
     scene.add(gltf.scene);
 }, undefined, function (error) {
     console.error('Error loading model:', error);
 });
 
-function animate() {
-    frameId = requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-
-    TWEEN.update();
-    controls.update();
-
-    // Update hotspots every other frame for better performance
-    if (frameId % 2 === 0) {
-        scene.children.forEach(object => {
-            if (object.userData && object.userData.hotspotId) {
-                const pulseScale = object.userData.pulseScale;
-                pulseScale.value += pulseScale.direction * 0.004;
-                if (pulseScale.value >= 1.2 || pulseScale.value <= 0.8) {
-                    pulseScale.direction *= -1;
-                }
-                object.scale.setScalar(pulseScale.value);
-            }
-        });
-    }
-
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
-}
-
-animate();
-
-function cleanup() {
-    cancelAnimationFrame(frameId);
-    window.removeEventListener('resize', resizeHandler);
+function animate(time) {
+    requestAnimationFrame(animate);
     
-    controls.dispose();
-    renderer.dispose();
-    labelRenderer.dispose();
-
-    resourceTracker.forEach(resource => {
-        if (resource.dispose) {
-            resource.dispose();
-        }
-        if (resource instanceof THREE.Object3D) {
-            if (resource.geometry) resource.geometry.dispose();
-            if (resource.material) {
-                if (Array.isArray(resource.material)) {
-                    resource.material.forEach(mat => mat.dispose());
-                } else {
-                    resource.material.dispose();
+    TWEEN.update();
+    
+    controls.update();
+    
+    scene.children.forEach(object => {
+        if (object.userData && object.userData.hotspotId) {
+            const pulseData = object.userData.pulseScale;
+            
+            if (!object.userData.lastPulseUpdate || time - object.userData.lastPulseUpdate > 100) {
+                pulseData.value += pulseData.direction * 0.004;
+                if (pulseData.value >= 1.2 || pulseData.value <= 0.8) {
+                    pulseData.direction *= -1;
                 }
+                object.scale.set(pulseData.value, pulseData.value, pulseData.value);
+                object.userData.lastPulseUpdate = time;
             }
         }
     });
     
-    resourceTracker.clear();
-    TWEEN.removeAll();
+    if (document.visibilityState === 'visible') {
+        renderer.render(scene, camera);
+        labelRenderer.render(scene, camera);
+    }
 }
+
+animate();
 
 window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -5437,10 +5405,8 @@ searchInput.addEventListener('input', () => {
             const item = document.createElement('div');
             item.className = 'search-result-item';
 
-            // Highlight matching title
             const highlightedTitle = highlightMatchedText(loc.title, query);
 
-            // Filter and highlight matching tags
             const matchingTags = loc.tags
                 ?.filter(tag => tag.toLowerCase().includes(query))
                 .map(tag => highlightMatchedText(tag, query))
@@ -5477,7 +5443,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = mobileSearchInput.value.toLowerCase().trim();
         mobileSearchResults.innerHTML = '';
 
-        // Toggle clear button visibility
         if (query) {
             mobileClearBtn.style.display = 'block';
             mobileSearchBtn.style.display = 'none';
@@ -5501,13 +5466,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('div');
                 item.className = 'search-result-item';
 
-                // Highlight matching title
                 const highlightedTitle = loc.title.replace(
                     new RegExp(query, 'gi'),
                     match => `<mark>${match}</mark>`
                 );
 
-                // Filter and highlight matching tags
                 const matchingTags = loc.tags
                     ?.filter(tag => tag.toLowerCase().includes(query))
                     .map(tag => tag.replace(
@@ -5540,7 +5503,6 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileSearchResults.style.display = uniqueResults.size > 0 ? 'block' : 'none';
     });
 
-    // Clear search functionality
     mobileClearBtn.addEventListener('click', () => {
         mobileSearchInput.value = '';
         mobileSearchResults.innerHTML = '';
@@ -5555,7 +5517,6 @@ function highlightMatchedText(text, query) {
     return text.replace(regex, '<mark>$1</mark>');
 }
 
-// Add this to your JavaScript file after your existing search input handler
 searchInput.addEventListener('input', () => {
     toggleClearButton();
 });
@@ -5583,6 +5544,10 @@ function clearSearch() {
 
 document.getElementById('search-clear-btn').onclick = clearSearch;
 
+// End of Search Functionality
+
+
+// Show Info Tab
 function showInfo(locationId) {
 
     const location = locations[locationId];
@@ -5684,6 +5649,7 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+// End of Show Info Tab
 
 //----------Window Functions-------------\\
 
@@ -5791,97 +5757,252 @@ window.closeInfoTab = () => {
     }, 300);
 };
 
-window.openFullscreenPanorama = (imageSrc) => {
+// Texture cache to reuse already loaded panorama textures
+const textureCache = new Map();
+
+// Pool of reusable objects
+const objectPool = {
+  geometry: null,
+  material: null
+};
+
+window.openFullscreenPanorama = (imageSrc, position) => {
+    // Create overlay
     const fullscreenOverlay = document.createElement('div');
     fullscreenOverlay.className = 'fullscreen-panorama-overlay';
     fullscreenOverlay.innerHTML = `
+        <div class="panorama-loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading panorama...</div>
+        </div>
         <button class="close-fullscreen-btn">&times;</button>
     `;
     document.body.appendChild(fullscreenOverlay);
 
-    closePopup();
-
-    const panoramaScene = new THREE.Scene();
-    const panoramaTexture = new THREE.TextureLoader().load(imageSrc);
-    panoramaTexture.minFilter = THREE.LinearFilter;
-    panoramaTexture.magFilter = THREE.LinearFilter;
+    // Show loading indicator
+    const loadingIndicator = fullscreenOverlay.querySelector('.panorama-loading');
     
-    const geometry = new THREE.SphereGeometry(500, 80, 50); // Slightly increased segments
-    geometry.scale(-1, 1, 1);
-    const material = new THREE.MeshBasicMaterial({ 
-        map: panoramaTexture,
-        side: THREE.DoubleSide
-    });
-    const panorama = new THREE.Mesh(geometry, material);
-    panoramaScene.add(panorama);
-
-    // Adjust FOV based on device width
-    const fov = window.innerWidth <= 768 ? 90 : 110;
-    const panoramaCamera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000);
-    panoramaCamera.position.set(0, 0, 0.1);
-
-    const panoramaRenderer = new THREE.WebGLRenderer({ antialias: true });
-    panoramaRenderer.setPixelRatio(window.devicePixelRatio);
-    panoramaRenderer.setSize(window.innerWidth, window.innerHeight);
-    fullscreenOverlay.appendChild(panoramaRenderer.domElement);
-
-    const panoramaControls = new OrbitControls(panoramaCamera, panoramaRenderer.domElement);
-
-    panoramaControls.enableDamping = true;
-    panoramaControls.dampingFactor = window.innerWidth <= 768 ? 0.15 : 0.25; // Adjusted for mobile
-    panoramaControls.screenSpacePanning = false;
-
-    panoramaControls.minDistance = 0.1;
-    panoramaControls.maxDistance = 500;
-
-    panoramaControls.maxPolarAngle = Math.PI;
-    panoramaControls.minPolarAngle = 0;
-
-    panoramaControls.enableZoom = false;
-    panoramaControls.enablePan = false;
-
-    panoramaControls.rotateSpeed = window.innerWidth <= 768 ? 0.35 : 0.5; // Adjusted for mobile
-
-    function animatePanorama() {
-        requestAnimationFrame(animatePanorama);
-        panoramaControls.update();
-        panoramaRenderer.render(panoramaScene, panoramaCamera);
+    // Close popup if open
+    if (typeof closePopup === 'function') {
+        closePopup();
     }
-    animatePanorama();
 
-    const closeButton = fullscreenOverlay.querySelector('.close-fullscreen-btn');
-    closeButton.addEventListener('click', () => {
-        console.log("Closing panorama viewer and cleaning up...");
+    // Create panorama scene
+    const panoramaScene = new THREE.Scene();
+    
+    // Check if texture is already in cache
+    let panoramaTexture;
+    if (textureCache.has(imageSrc)) {
+        panoramaTexture = textureCache.get(imageSrc);
+        createPanorama(panoramaTexture);
+    } else {
+        // Create texture loader with loading manager
+        const loadingManager = new THREE.LoadingManager();
+        loadingManager.onProgress = (url, loaded, total) => {
+            // Update loading progress
+            const progress = Math.floor((loaded / total) * 100);
+            const loadingText = fullscreenOverlay.querySelector('.loading-text');
+            if (loadingText) {
+                loadingText.textContent = `Loading panorama... ${progress}%`;
+            }
+        };
+        
+        const textureLoader = new THREE.TextureLoader(loadingManager);
+        textureLoader.load(
+            imageSrc,
+            (texture) => {
+                // Optimize texture
+                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = THREE.LinearFilter;
+                texture.generateMipmaps = false; // Disable mipmaps for panoramas
+                
+                // Add to cache
+                textureCache.set(imageSrc, texture);
+                
+                // Hide loading indicator
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+                
+                createPanorama(texture);
+            },
+            undefined,
+            (error) => {
+                console.error('Error loading panorama texture:', error);
+                if (loadingIndicator) {
+                    loadingIndicator.innerHTML = 'Error loading panorama';
+                }
+            }
+        );
+    }
 
-        // Dispose resources
-        panoramaControls.dispose();
-        panoramaRenderer.dispose();
-        panoramaTexture.dispose();
-        geometry.dispose();
-        material.dispose();
+    function createPanorama(texture) {
+        // Create or reuse sphere geometry
+        let geometry;
+        if (objectPool.geometry) {
+            geometry = objectPool.geometry;
+        } else {
+            geometry = new THREE.SphereGeometry(500, 60, 40);
+            geometry.scale(-1, 1, 1);
+            objectPool.geometry = geometry;
+        }
 
-        // Remove panorama elements
-        document.body.removeChild(fullscreenOverlay);
+        // Create material with the loaded texture
+        const material = new THREE.MeshBasicMaterial({ 
+            map: texture,
+            side: THREE.DoubleSide
+        });
 
-        // Ensure navigation cleanup
-        const event = new Event("panoramaClose");
-        window.dispatchEvent(event);
-    });
+        // Create the panorama mesh
+        const panorama = new THREE.Mesh(geometry, material);
+        panoramaScene.add(panorama);
 
-    function onPanoramaResize() {
-        panoramaCamera.aspect = window.innerWidth / window.innerHeight;
-        panoramaCamera.updateProjectionMatrix();
+        // Adjust FOV based on device width
+        const fov = window.innerWidth <= 768 ? 90 : 110;
+        const panoramaCamera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000);
+        panoramaCamera.position.set(0, 0, 0.1);
+
+        // Create renderer
+        const panoramaRenderer = new THREE.WebGLRenderer({ 
+            antialias: true,
+            powerPreference: 'high-performance' // Request high performance mode
+        });
+        panoramaRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
         panoramaRenderer.setSize(window.innerWidth, window.innerHeight);
-        // Update controls and FOV on resize
-        panoramaControls.dampingFactor = window.innerWidth <= 768 ? 0.15 : 0.25;
-        panoramaControls.rotateSpeed = window.innerWidth <= 768 ? 0.35 : 0.5;
-        panoramaCamera.fov = window.innerWidth <= 768 ? 90 : 110;
-        panoramaCamera.updateProjectionMatrix();
-    }
-    window.addEventListener("resize", onPanoramaResize);
+        fullscreenOverlay.appendChild(panoramaRenderer.domElement);
 
-    fullscreenOverlay.addEventListener("contextmenu", (e) => e.preventDefault());
+        // Create controls
+        const panoramaControls = new OrbitControls(panoramaCamera, panoramaRenderer.domElement);
+        panoramaControls.enableDamping = true;
+        panoramaControls.dampingFactor = window.innerWidth <= 768 ? 0.15 : 0.25;
+        panoramaControls.screenSpacePanning = false;
+        panoramaControls.minDistance = 0.1;
+        panoramaControls.maxDistance = 500;
+        panoramaControls.maxPolarAngle = Math.PI;
+        panoramaControls.minPolarAngle = 0;
+        panoramaControls.enableZoom = false;
+        panoramaControls.enablePan = false;
+        panoramaControls.rotateSpeed = window.innerWidth <= 768 ? 0.35 : 0.5;
+
+        // Animation variables
+        let animationFrameId;
+        let isVisible = true;
+
+        // Visibility API to pause rendering when tab is not visible
+        if (document.hidden !== undefined) {
+            document.addEventListener('visibilitychange', () => {
+                isVisible = !document.hidden;
+                if (!isVisible && animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                } else if (isVisible && !animationFrameId) {
+                    animatePanorama();
+                }
+            });
+        }
+
+        // Animation function with throttled rendering
+        let lastRenderTime = 0;
+        const renderInterval = 1000 / 30; // Aim for 30 FPS to save performance
+
+        function animatePanorama(time) {
+            if (!isVisible) return;
+            
+            animationFrameId = requestAnimationFrame(animatePanorama);
+            
+            // Only render if controls changed or enough time passed
+            const shouldRender = !lastRenderTime || time - lastRenderTime >= renderInterval || panoramaControls.update();
+            
+            if (shouldRender) {
+                panoramaRenderer.render(panoramaScene, panoramaCamera);
+                lastRenderTime = time;
+            }
+        }
+
+        // Start animation
+        animatePanorama();
+
+        // Resize handler
+        function onPanoramaResize() {
+            panoramaCamera.aspect = window.innerWidth / window.innerHeight;
+            panoramaCamera.updateProjectionMatrix();
+            panoramaRenderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Update controls and FOV
+            panoramaControls.dampingFactor = window.innerWidth <= 768 ? 0.15 : 0.25;
+            panoramaControls.rotateSpeed = window.innerWidth <= 768 ? 0.35 : 0.5;
+            panoramaCamera.fov = window.innerWidth <= 768 ? 90 : 110;
+            panoramaCamera.updateProjectionMatrix();
+        }
+
+        // Add resize listener
+        window.addEventListener('resize', onPanoramaResize);
+
+        // Close button handler
+        const closeButton = fullscreenOverlay.querySelector('.close-fullscreen-btn');
+        closeButton.addEventListener('click', cleanupPanorama);
+
+        // Prevent context menu
+        fullscreenOverlay.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Cleanup function
+        function cleanupPanorama() {
+            console.log("Cleaning up panorama resources...");
+            
+            // Cancel animation frame
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            // Remove event listeners
+            window.removeEventListener('resize', onPanoramaResize);
+            fullscreenOverlay.removeEventListener('contextmenu', e => e.preventDefault());
+            
+            // Dispose resources that are not cached
+            panoramaControls.dispose();
+            panoramaRenderer.dispose();
+            
+            // Don't dispose geometry or texture as they're cached/pooled
+            
+            // Only dispose material (textures are kept in cache)
+            if (material) material.dispose();
+            
+            // Remove from scene
+            panoramaScene.remove(panorama);
+            
+            // Remove from DOM
+            if (fullscreenOverlay.parentNode) {
+                document.body.removeChild(fullscreenOverlay);
+            }
+            
+            // Trigger panorama close event
+            const event = new Event("panoramaClose");
+            window.dispatchEvent(event);
+        }
+    }
 };
+
+// Cleanup function to call when unloading the page
+window.cleanupTextureCache = () => {
+    textureCache.forEach(texture => {
+        texture.dispose();
+    });
+    textureCache.clear();
+    
+    if (objectPool.geometry) {
+        objectPool.geometry.dispose();
+        objectPool.geometry = null;
+    }
+    
+    if (objectPool.material) {
+        objectPool.material.dispose();
+        objectPool.material = null;
+    }
+};
+
+// Add unload event listener to clean up resources
+window.addEventListener('beforeunload', window.cleanupTextureCache);
 
 document.addEventListener('touchmove', (e) => {
     if (document.querySelector('.fullscreen-panorama-overlay')) {
@@ -5914,5 +6035,3 @@ labelDiv.addEventListener('click', () => {
     onLabelClick();
     showLocationPopup(locationId);
 });
-
-export { scene, camera, renderer, controls, cleanup };
