@@ -3,31 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPHSD-LP Campus Navigator | About</title>
+    
     <link rel="stylesheet" href="/src/styles/about.css">
-    <title>About - Virtual Campus Navigator</title>
 </head>
 <body>
     <div id="logo">
-        <img src="/assets/logo/Logo.png" id="main-logo">
-        <img src="/assets/logo/ccs-logo.png" id="ccs-logo">
+        <img src="/assets/logo/Logo.png" alt="Main Logo">
+        <img src="/assets/logo/ccs-logo.png" alt="CCS Logo">
     </div>
+
     <div id="about-page">
-        <button id="back-button" onclick="window.history.back();">← Back</button>
+        <button id="back-button" onclick="window.history.back();">
+            <span>←</span> Back
+        </button>
+
         <h1>About the Virtual Campus Navigator</h1>
+        
         <p>The Virtual Campus Navigator is an innovative 3D tool designed to help students, faculty, and visitors explore the University of Perpetual Help System DALTA Las Pinas campus with ease. This interactive platform provides a detailed virtual representation of the campus, allowing users to navigate through various facilities, locate important landmarks, and access essential information.</p>
         
         <h2>About the University</h2>
         <p>The University of Perpetual Help System DALTA, located in Las Pinas, Philippines, is committed to providing quality education and fostering a conducive learning environment. The campus is equipped with modern facilities, dedicated faculty, and a vibrant student community, making it an ideal place for academic and personal growth.</p>
         
-        <h2>The Team</h2>
-        <p>This program was developed by a team of passionate creators:</p>
-        <h2 class="center maroon">We are not just students,</h2>
-        <h2 class="center maroon">we’re Perpetualites at heart.</h2>
-        <ul>
-            <li><img src='/assets/images/Josh.png'>Josh Abad</li>
-            <li><img src='/assets/images/Rafael.png'>Rafael Rodriguez</li>
-            <li><img src='/assets/images/Ghazi.png'>Ghazi Amit</li>
-        </ul>
+        <div class="team-section">
+            <h2>The Team</h2>
+            <p>This program was developed by a team of passionate creators:</p>
+            <h2 class="center maroon">We are not just students,</h2>
+            <h2 class="center maroon">we're Perpetualites at heart.</h2>
+            
+            <div class="team">
+                <ul>
+                    <li>
+                        <img src='/assets/images/Josh.png' alt="Josh Abad">
+                        <span>Josh Abad</span>
+                    </li>
+                    <li>
+                        <img src='/assets/images/Rafael.png' alt="Rafael Rodriguez">
+                        <span>Rafael Rodriguez</span>
+                    </li>
+                    <li>
+                        <img src='/assets/images/Ghazi.png' alt="Ghazi Amit">
+                        <span>Ghazi Amit</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
     
     <footer>
@@ -35,10 +55,11 @@
             © UPHSD-LP Campus Navigator
         </div>
         <div id="logo-mobile">
-            <img src="/assets/logo/Logo.png" id="mobile-main-logo">
-            <img src="/assets/logo/ccs-logo.png" id="mobile-ccs-logo">
+            <img src="/assets/logo/Logo.png" alt="Main Logo">
+            <img src="/assets/logo/ccs-logo.png" alt="CCS Logo">
         </div>
     </footer>
+
     <script type="module" src="/js/session.js"></script>
 </body>
 </html>
