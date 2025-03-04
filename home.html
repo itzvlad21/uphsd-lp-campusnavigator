@@ -4,10 +4,427 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/assets/logo/Logo.png">
-    <link rel="stylesheet" href="/src/styles/home.css">
-    <title>Campus Navigator - Home</title>
+    <title>UPHSD-LP Campus Navigator - Home</title>
     <script src="https://kit.fontawesome.com/002636da55.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Basic reset and fonts */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url("/assets/images/background.png");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        /* Header Styles */
+        .site-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .logo-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .logo-container img {
+            height: 60px;
+        }
+        
+        .logout-button {
+            background-color: #7F0404;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .logout-button:hover {
+            background-color: #990000;
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        /* Welcome Section */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .welcome-title {
+            font-size: 2.5rem;
+            color: #7F0404;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-message {
+            font-size: 1.2rem;
+            color: #333;
+            max-width: 600px;
+        }
+        
+        /* Slideshow */
+        .ads-section {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ads-slideshow {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #7F0404;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ads-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .ad-slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        
+        .ad-slide.active {
+            opacity: 1;
+        }
+        
+        .slideshow-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            z-index: 2;
+        }
+        
+        .slide-nav {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #7F0404;
+        }
+        
+        .slide-dots {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .slide-dot.active {
+            background: #ffffff;
+        }
+        
+        /* Navigation Button */
+        .navigation-section {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        .primary-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background-color: #7F0404;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(127, 4, 4, 0.3);
+        }
+        
+        .primary-button:hover {
+            background-color: #990000;
+        }
+        
+        .navigation-description {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        /* Menu Buttons */
+        .menu-section {
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .menu-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            min-height: 120px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-button:hover {
+            background-color: #444;
+            transform: translateY(-5px);
+        }
+        
+        .menu-button i {
+            font-size: 2rem;
+        }
+        
+        /* Footer */
+        .site-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        
+        .copyright {
+            color: #7F0404;
+            font-size: 0.9rem;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 8px 15px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7F0404;
+        }
+        
+        .modal-close:hover {
+            transform: rotate(90deg);
+        }
+        
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 2000;
+        }
+        
+        .loading-animation {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #7F0404;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Logout Modal */
+        .logout-modal-content {
+            text-align: center;
+        }
+        
+        .logout-modal-content h3 {
+            color: #7F0404;
+            margin-bottom: 15px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            min-width: 100px;
+        }
+        
+        .secondary-button {
+            background-color: #eee;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .secondary-button:hover {
+            background-color: #ddd;
+        }
+        
+        /* QR Wrapper */
+        .qr-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .welcome-title {
+                font-size: 2rem;
+            }
+            
+            .primary-button {
+                font-size: 1.1rem;
+                padding: 12px;
+            }
+            
+            .menu-button {
+                padding: 15px;
+                min-height: 100px;
+            }
+            
+            .menu-button i {
+                font-size: 1.7rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-container img {
+                height: 40px;
+            }
+            
+            .logout-button span {
+                display: none;
+            }
+            
+            .logout-button {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                padding: 0;
+                justify-content: center;
+            }
+            
+            .welcome-title {
+                font-size: 1.5rem;
+            }
+            
+            .menu-button {
+                min-height: 90px;
+            }
+            
+            .menu-button i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -22,6 +439,11 @@
     </header>
 
     <main class="main-content">
+        <section class="welcome-section">
+            <h1 class="welcome-title">Welcome to UPHSD-LP</h1>
+            <p class="welcome-message">Explore our campus with the interactive 3D Navigator</p>
+        </section>
+
         <section class="ads-section">
             <div class="ads-slideshow">
                 <div class="ads-container">
@@ -40,8 +462,9 @@
         <section class="navigation-section">
             <button id="start-navigation" class="primary-button">
                 <i class="fa-solid fa-location-dot"></i>
-                <span>Start Navigation</span>
+                <span>Start 3D Campus Navigator</span>
             </button>
+            <p class="navigation-description">Experience an interactive 3D tour of our campus with real-time directions</p>
         </section>
 
         <section class="menu-section">
@@ -65,7 +488,7 @@
     <!-- Modals -->
     <div id="loading-screen" class="modal">
         <div class="loading-animation"></div>
-        <p>Loading...</p>
+        <p>Loading Campus Navigator...</p>
     </div>
 
     <div id="announcement-modal" class="modal">
@@ -73,7 +496,7 @@
             <button class="modal-close" onclick="closeAnnouncement()">×</button>
             <h3>Announcements</h3>
             <div class="announcement-list">
-                <p>No Announcement as of today</p>
+                <p>No announcements as of today</p>
             </div>
         </div>
     </div>
@@ -81,6 +504,7 @@
     <div id="qr-modal" class="modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeQR()">×</button>
+            <h3>QR Code</h3>
             <div class="qr-wrapper">
                 <input id="text" type="text" value="https://perpetualdalta.edu.ph" hidden/>
                 <div id="qrcode"></div>
@@ -88,7 +512,19 @@
         </div>
     </div>
 
-    <script type="text/javascript">
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="modal">
+        <div class="modal-content logout-modal-content">
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to logout from the Campus Navigator?</p>
+            <div class="modal-buttons">
+                <button id="cancel-logout" class="secondary-button">Cancel</button>
+                <button id="confirm-logout" class="primary-button">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         // QR Code Generation
         var qrcode = new QRCode(document.getElementById("qrcode"), {
             width: 300,
@@ -144,16 +580,38 @@
         // Event Listeners
         document.querySelector('.next').addEventListener('click', nextSlide);
         document.querySelector('.prev').addEventListener('click', prevSlide);
-        document.getElementById('announcement-button').addEventListener('click', () => {
+
+        // Button click handlers
+        document.getElementById('announcement-button').addEventListener('click', function() {
             document.getElementById('announcement-modal').style.display = 'flex';
         });
-        document.getElementById('qr-button').addEventListener('click', () => {
+        
+        document.getElementById('qr-button').addEventListener('click', function() {
             document.getElementById('qr-modal').style.display = 'flex';
         });
 
-        // Auto advance slides
-        updateSlides();
-        setInterval(nextSlide, 5000);
+        // Logout functionality
+        document.getElementById('logout').addEventListener('click', function() {
+            document.getElementById('logout-modal').style.display = 'flex';
+        });
+
+        document.getElementById('cancel-logout').addEventListener('click', function() {
+            document.getElementById('logout-modal').style.display = 'none';
+        });
+
+        document.getElementById('confirm-logout').addEventListener('click', function() {
+            // Clear all session data
+            sessionStorage.clear();
+            localStorage.removeItem('userPreferences');
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Redirect to login page
+            window.location.href = 'index.html';
+        });
 
         // Modal close functions
         function closeAnnouncement() {
@@ -163,7 +621,30 @@
         function closeQR() {
             document.getElementById('qr-modal').style.display = 'none';
         }
+
+        // Navigation button
+        document.getElementById('start-navigation').addEventListener('click', function() {
+            const userType = sessionStorage.getItem('userType');
+            
+            sessionStorage.setItem('showInstructions', 'true');
+            
+            document.getElementById('loading-screen').style.display = 'flex';
+            
+            setTimeout(() => {
+                if (userType === 'guest') {
+                    window.location.href = 'guest.html';
+                } else if (userType === 'student') {
+                    window.location.href = 'student.html';
+                } else {
+                    alert('Session error. Please login again.');
+                    window.location.href = '/index.html';
+                }
+            }, 1000);
+        });
+
+        // Auto advance slides
+        updateSlides();
+        setInterval(nextSlide, 5000);
     </script>
-    <script type="module" src="/js/home-session.js"></script>
 </body>
 </html>
